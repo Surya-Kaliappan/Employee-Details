@@ -15,7 +15,7 @@ public class TimeTable implements ActionListener{
     int nd = days.length;
     int nt = time.length;
     JFrame table;
-    JTextField emp_id;
+    JTextField emp_id,emp_cabin;
     JButton get,save,cancel;
 
     JTextField[][] c = new JTextField[nd][nt];
@@ -34,6 +34,16 @@ public class TimeTable implements ActionListener{
         emp_id.setBounds(200,30,200,30);
         emp_id.setFont(font);
         table.add(emp_id);
+
+        JLabel showcabin = new JLabel("Employee Cabin");
+        showcabin.setBounds(700,30,150,30);
+        showcabin.setFont(font);
+        table.add(showcabin);
+
+        emp_cabin = new JTextField();
+        emp_cabin.setBounds(850,30,200,30);
+        emp_cabin.setFont(font);
+        table.add(emp_cabin);
 
         emp_id.addMouseListener(new MouseAdapter(){
             @Override
@@ -164,12 +174,28 @@ public class TimeTable implements ActionListener{
         }
     }
 
+    private void getCabin(String id){
+        try{
+            Connection con = DriverManager.getConnection(url,user,pass);
+            Statement stmt = con.createStatement();
+            String query = String.format("Select emp_cabin from employee where emp_id='%s';",id);
+            ResultSet rs = stmt.executeQuery(query);
+            rs.next();
+            emp_cabin.setText(rs.getString(1));
+            stmt.close();
+            con.close();
+        }
+        catch(Exception e){
+            JOptionPane.showMessageDialog(null,"Something went Wrong..","ERROR",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void collectData(){
         if(checkinTable("timetable",s)){
             try{
                 Connection con = DriverManager.getConnection(url,user,pass);
                 Statement stmt = con.createStatement();
-                String query = String.format("Select day,time,venue from timetable where emp_id='%s'",s);
+                String query = String.format("Select day,time,venue from timetable where emp_id='%s';",s);
                 ResultSet rs = stmt.executeQuery(query);
                 int x,y;
                 while(rs.next()){
@@ -177,6 +203,7 @@ public class TimeTable implements ActionListener{
                     y = Arrays.asList(time).indexOf(rs.getString(2));
                     c[x][y].setText(rs.getString(3));
                 }
+                getCabin(s);
                 stmt.close();
                 con.close();
             }
@@ -185,6 +212,7 @@ public class TimeTable implements ActionListener{
             }
         }
         else if(checkinTable("employee",s)){
+            getCabin(s);
             JOptionPane.showMessageDialog(null,"TimeTable Created for Id : "+s.toUpperCase(),"Information",JOptionPane.INFORMATION_MESSAGE);
         }
         else{
@@ -200,13 +228,13 @@ public class TimeTable implements ActionListener{
             Connection con = DriverManager.getConnection(url,user,pass);
             Statement stmt = con.createStatement();
             String query = String.format("Delete from timetable where emp_id='%s'",s);
+            String venue;
             if(checkinTable("timetable",s)){
                 stmt.executeUpdate(query);
-
             }
             for(int i=0;i<nd;i++){
                 for(int j=0;j<nt;j++){
-                    String venue = c[i][j].getText();
+                    venue = c[i][j].getText();
                     if(!(venue.equals(""))){
                         query = String.format("Insert into timetable values('%s','%s','%s','%s');",s,days[i],time[j],venue);
                         if(stmt.executeUpdate(query)<1){
@@ -218,11 +246,15 @@ public class TimeTable implements ActionListener{
                     }
                 }
             }
-            JOptionPane.showMessageDialog(null,"Successfully TimeTable Updated");
+            venue = emp_cabin.getText();
+            query = String.format("Update employee set emp_cabin='%s' where emp_id='%s';",venue,s);
+            stmt.executeUpdate(query);
+            JOptionPane.showMessageDialog(null,"Successfully Details Updated");
             stmt.close();
             con.close();
             clearData();
             emp_id.setText("");
+            emp_cabin.setText("");
             get.setEnabled(true);
             save.setEnabled(false);
         }

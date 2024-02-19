@@ -398,7 +398,7 @@ public class Employee implements ActionListener{
         Random rand = new Random();
         int i = rand.nextInt(1000);
         String id = String.format("E%04d",i);
-        if(checkId(id)){
+        if(checkId(id) || id.equals("E0000")){
             id = generateId();
         }
         return id;
@@ -517,7 +517,7 @@ public class Employee implements ActionListener{
     }
 
     private void adding(String id,String name,String dept,String desc,String ph,String email){
-        String query = String.format("Insert into employee values('%s','%s','%s','%s','%s','%s');",id,name,dept,desc,ph,email);
+        String query = String.format("Insert into employee values('%s','%s','%s','%s','%s','%s','%s');",id,name,dept,desc,ph,email,"");
         execution(query,id);
     }
     private void editing(String id,String name,String dept,String desc,String ph,String email){
