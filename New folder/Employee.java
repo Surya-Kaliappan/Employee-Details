@@ -9,7 +9,7 @@ import java.util.Random;
 
 public class Employee implements ActionListener{
 
-    private String url = "jdbc:mysql://localhost:3306/college";
+    private String url = "jdbc:mysql://127.0.0.1:3306/college";
     private String user = "root";
     private String pass = "";
     JFrame a,ed,de;
@@ -516,11 +516,29 @@ public class Employee implements ActionListener{
         }
     }
 
+    private String getDeptId(String dept){
+        String result = "";
+        try{
+            Connection con = DriverManager.getConnection(url,user,pass);
+            Statement stmt = con.createStatement();
+            String query = String.format("select dept_id from department where dept_name = '%s';",dept);
+            ResultSet rs = stmt.executeQuery(query);
+            rs.next();
+            result = rs.getString(1);
+        } 
+        catch(Exception e){
+            System.out.println(e);
+        }
+        return result;
+    }
+
     private void adding(String id,String name,String dept,String desc,String ph,String email){
+        dept = getDeptId(dept);
         String query = String.format("Insert into employee values('%s','%s','%s','%s','%s','%s','%s');",id,name,dept,desc,ph,email,"");
         execution(query,id);
     }
     private void editing(String id,String name,String dept,String desc,String ph,String email){
+        dept = getDeptId(dept);
         String query= String.format("Update employee set emp_name='%s',emp_dept='%s',emp_spec='%s',emp_ph='%s',emp_email='%s' where emp_id='%s';",name,dept,desc,ph,email,id);
         execution(query,id);
     }
